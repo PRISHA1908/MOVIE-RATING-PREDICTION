@@ -1,1 +1,88 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC, LinearSVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import Perceptron
+from sklearn.linear_model import SGDClassifier
+from sklearn.tree import DecisionTreeClassifier
+import warnings
+warnings.filterwarnings('ignore')
 
+#Input movies dataset
+movies = pd.read_csv(r"/kaggle/input/movielens/movies.dat", sep='::', engine='python', encoding='latin1')
+movies.columns =['MovieID', 'Title', 'Genres']
+movies.dropna(inplace=True)
+movies.head()
+
+#Input ratings dataset
+ratings = pd.read_csv(r"/kaggle/input/movielens/ratings.dat",sep='::', engine='python')
+ratings.columns =['UserID', 'MovieID', 'Rating', 'Timestamp']
+ratings.dropna(inplace=True)
+
+#Read the sample ratings dataset
+ratings.head()
+
+#Input users dataset
+users = pd.read_csv(r"/kaggle/input/movielens/users.dat",sep='::',engine='python')
+users.columns =['UserID', 'Gender', 'Age', 'Occupation', 'Zip-code']
+users.dropna(inplace=True)
+
+#Read the sample users dataset
+users.head()
+
+#Merge the ratings and users with movieID and UserID
+ratings_user = pd.merge(ratings,users, on=['UserID'])
+ratings_movie = pd.merge(ratings,movies, on=['MovieID'])
+
+master_data = pd.merge(ratings_user,ratings_movie,
+                       on=['UserID', 'MovieID', 'Rating'])[['MovieID', 'Title', 'UserID', 'Age', 'Gender', 'Occupation', "Rating"]]
+
+master_data.head()
+
+# all 5 rating movies list count = 225473
+master_data[master_data['Rating'] == 5]
+
+# all 5 rating movies list and Age Lass Then 25 count = 47163
+master_data[(master_data['Rating'] == 5) & (master_data['Age'] < 25 ) ] 
+
+# all 5 rating movies list and Age Lass Then 25 count = 47163
+master_data[(master_data['Rating'] < 3) & (master_data['Age'] < 25 )] 
+
+master_data['Age'].value_counts().plot(kind='bar', color= ['cyan', 'blue'],alpha=0.5,figsize=(15,7))
+plt.show()
+
+master_data['Rating'].value_counts().plot(kind='bar', color=['green', 'yellow'],alpha=0.5,figsize=(15,7))
+plt.show()
+res = master_data[master_data.Title == "Only You (1994)"]
+
+plt.plot(res.groupby("Age")["MovieID"].count(),'--bo')
+res.groupby("Age")["MovieID"].count()
+
+#Find the ratings for all the movies reviewed by for a particular user of user id = 700
+
+res = master_data[master_data.UserID == 700]
+
+plt.scatter(y=res.Title, x=res.Rating , color = 'aqua')
+plt.show()
+
+res = master_data.groupby("Title").size().sort_values(ascending=False)[:25]
+plt.ylabel("Title")
+plt.xlabel("Viewership Count")
+res.plot(kind="barh", color = ['lightseagreen', 'turquoise', 'deepskyblue'])
+plt.show()
+
+res = master_data.groupby("Gender").size().sort_values(ascending=False)[:25]
+plt.ylabel("Gender")
+plt.xlabel("Viewership Count")
+res.plot(kind="kde")
+plt.show()
+res = master_data.groupby("Rating").size().sort_values(ascending=False)[:25]
+plt.ylabel("Rating")
+plt.xlabel("Viewership Count")
+res.plot(kind='bar', color= ['red', 'darkorange'])
